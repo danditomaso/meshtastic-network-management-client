@@ -1,6 +1,5 @@
 use log::debug;
 use meshtastic::protobufs;
-use tauri::api::notification::Notification;
 
 use crate::{
     device::{
@@ -161,31 +160,32 @@ pub fn handle_text_message_mesh_packet<R: tauri::Runtime>(
         data: data.clone(),
     });
 
-    let from_user_name = get_node_user_name(&mut packet_api.device, &packet.from)
-        .unwrap_or_else(|| packet.from.to_string());
+    // let from_user_name = get_node_user_name(&mut packet_api.device, &packet.from)
+    //     .unwrap_or_else(|| packet.from.to_string());
 
-    let channel_name = get_channel_name(&mut packet_api.device, &packet.channel)
-        .unwrap_or_else(|| "Unknown channel".into());
+    // let channel_name = get_channel_name(&mut packet_api.device, &packet.channel)
+    //     .unwrap_or_else(|| "Unknown channel".into());
 
     // Always keep updates at bottom in case of failure during functions
     events::dispatch_updated_device(&packet_api.app_handle, &packet_api.device)
         .map_err(|e| DeviceUpdateError::EventDispatchFailure(e.to_string()))?;
 
-    if packet.from != packet_api.device.my_node_info.my_node_num {
-        Notification::new(
-            packet_api
-                .app_handle
-                .config()
-                .tauri
-                .bundle
-                .identifier
-                .clone(),
-        )
-        .title(format!("{} in {}", from_user_name, channel_name))
-        .body(data)
-        .notify(&packet_api.app_handle)
-        .map_err(|e| DeviceUpdateError::NotificationDispatchFailure(e.to_string()))?;
-    }
+    // TODO: artifact from 1.x to 2.x upgrade, this should be reviewed and fixed/uncommented if its still required
+    // if packet.from != packet_api.device.my_node_info.my_node_num {
+    //     Notification::new(
+    //         packet_api
+    //             .app_handle
+    //             .config()
+    //             .tauri
+    //             .bundle
+    //             .identifier
+    //             .clone(),
+    //     )
+    //     .title(format!("{} in {}", from_user_name, channel_name))
+    //     .body(data)
+    //     .notify(&packet_api.app_handle)
+    //     .map_err(|e| DeviceUpdateError::NotificationDispatchFailure(e.to_string()))?;
+    // }
 
     Ok(())
 }
@@ -206,33 +206,34 @@ pub fn handle_waypoint_mesh_packet<R: tauri::Runtime>(
         data: converted_data.clone(),
     });
 
-    let from_user_name = get_node_user_name(&mut packet_api.device, &packet.from)
-        .unwrap_or_else(|| packet.from.to_string());
+    // let from_user_name = get_node_user_name(&mut packet_api.device, &packet.from)
+    //     .unwrap_or_else(|| packet.from.to_string());
 
-    let channel_name = get_channel_name(&mut packet_api.device, &packet.channel)
-        .unwrap_or_else(|| "Unknown channel".into());
+    // let channel_name = get_channel_name(&mut packet_api.device, &packet.channel)
+    //     .unwrap_or_else(|| "Unknown channel".into());
 
     events::dispatch_updated_device(&packet_api.app_handle, &packet_api.device)
         .map_err(|e| DeviceUpdateError::EventDispatchFailure(e.to_string()))?;
 
-    if packet.from != packet_api.device.my_node_info.my_node_num {
-        Notification::new(
-            packet_api
-                .app_handle
-                .config()
-                .tauri
-                .bundle
-                .identifier
-                .clone(),
-        )
-        .title(format!("{} in {}", from_user_name, channel_name))
-        .body(format!(
-            "Sent waypoint \"{}\" at {}, {}",
-            converted_data.name, converted_data.latitude, converted_data.longitude
-        ))
-        .notify(&packet_api.app_handle)
-        .map_err(|e| DeviceUpdateError::NotificationDispatchFailure(e.to_string()))?;
-    }
+    // TODO: disabled this as part of 1.x to 2.x Tauri upgrade effort
+    // if packet.from != packet_api.device.my_node_info.my_node_num {
+    //     Notification::new(
+    //         packet_api
+    //             .app_handle
+    //             .config()
+    //             .tauri
+    //             .bundle
+    //             .identifier
+    //             .clone(),
+    //     )
+    //     .title(format!("{} in {}", from_user_name, channel_name))
+    //     .body(format!(
+    //         "Sent waypoint \"{}\" at {}, {}",
+    //         converted_data.name, converted_data.latitude, converted_data.longitude
+    //     ))
+    //     .notify(&packet_api.app_handle)
+    //     .map_err(|e| DeviceUpdateError::NotificationDispatchFailure(e.to_string()))?;
+    // }
 
     Ok(())
 }

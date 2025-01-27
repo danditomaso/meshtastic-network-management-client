@@ -1,34 +1,32 @@
-use log::{error, info};
-
 use crate::state;
+use log::{error, info};
+use tauri::Manager;
 
-pub fn handle_cli_matches(
-    app: &mut tauri::App,
-    inital_autoconnect_state: &mut state::autoconnect::AutoConnectState,
+#[derive(Debug, serde::Deserialize)]
+pub struct CliConfig {
+    port: Option<String>,
+}
+
+pub fn handle_cli_args(
+    app: &tauri::App,
+    initial_autoconnect_state: &mut state::autoconnect::AutoConnectState,
 ) -> Result<(), String> {
-    match app.get_cli_matches() {
-        Ok(matches) => {
-            let args = matches.args;
+    // Get CLI args from app configuration context
+    let matches = app.env().args();
 
-            // Check if user has specified a port name to automatically connect to
-            // If so, store it for future connection attempts
-            if let Some(port_arg) = args.get("port") {
-                if port_arg.occurrences == 0 {
-                    info!("No occurences of \"port\" CLI argument, skipping...");
-                    return Ok(());
-                }
-
-                if let serde_json::Value::String(port_name) = port_arg.value.clone() {
-                    *inital_autoconnect_state =
-                        state::autoconnect::AutoConnectState::init(port_name);
-                }
+    // Look for --port or -p argument
+    for (i, arg) in matches.iter().enumerate() {
+        if arg == "--port" || arg == "-p" {
+            // Try to get the next argument as the port value
+            if let Some(port_name) = matches.get(i + 1) {
+                info!("Found port CLI argument: {}", port_name);
+                *initial_autoconnect_state =
+                    state::autoconnect::AutoConnectState::init(port_name.to_string());
+                return Ok(());
             }
-
-            Ok(())
-        }
-        Err(err) => {
-            error!("Failed to get CLI matches: {}", err);
-            Err(err.to_string())
         }
     }
+
+    info!("No port CLI argument specified, skipping...");
+    Ok(())
 }

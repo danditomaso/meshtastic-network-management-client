@@ -3,7 +3,7 @@
     windows_subsystem = "windows"
 )]
 
-mod cli;
+// mod cli;
 mod device;
 mod graph;
 mod ipc;
@@ -16,7 +16,6 @@ use specta::{
     ts::{BigIntExportBehavior, ExportConfiguration, ModuleExportBehavior, TsExportError},
 };
 use tauri::Manager;
-use tauri_plugin_log::{fern::colors::ColoredLevelConfig, LogTarget};
 
 fn export_ts_types(file_path: &str) -> Result<(), TsExportError> {
     let ts_export_config = ExportConfiguration::default()
@@ -29,18 +28,23 @@ fn export_ts_types(file_path: &str) -> Result<(), TsExportError> {
 #[cfg(debug_assertions)]
 const LOG_LEVEL: LevelFilter = LevelFilter::Debug;
 
-#[cfg(not(debug_assertions))]
-const LOG_LEVEL: LevelFilter = LevelFilter::Trace;
+// #[cfg(not(debug_assertions))]
+// const LOG_LEVEL: LevelFilter = LevelFilter::Trace;
 
 fn main() {
     tauri::Builder::default()
-        .plugin(
-            tauri_plugin_log::Builder::default()
-                .targets([LogTarget::LogDir, LogTarget::Stdout, LogTarget::Webview])
-                .level(LOG_LEVEL)
-                .with_colors(ColoredLevelConfig::default())
-                .build(),
-        )
+        .plugin(tauri_plugin_store::Builder::new().build())
+        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_notification::init())
+        // .plugin(
+        //     tauri_plugin_log::Builder::default()
+        //         .level(LOG_LEVEL)
+        //         .with_colors(ColoredLevelConfig::default())
+        //         .build(),
+        // )
         .plugin(tauri_plugin_store::Builder::default().build())
         .setup(|app| {
             info!("Building TS types from Rust");
@@ -54,10 +58,10 @@ fn main() {
             let mut inital_autoconnect_state = state::autoconnect::AutoConnectState::new();
             let initial_graph_state = state::graph::GraphState::new();
 
-            match cli::handle_cli_matches(app, &mut inital_autoconnect_state) {
-                Ok(_) => {}
-                Err(err) => panic!("Failed to parse CLI args:\n{}", err),
-            }
+            // match cli::handle_cli_args(app, &mut inital_autoconnect_state) {
+            //     Ok(_) => {}
+            //     Err(err) => panic!("Failed to parse CLI args:\n{}", err),
+            // }
 
             app.app_handle().manage(initial_mesh_devices_state);
             app.app_handle().manage(initial_radio_connections_state);
